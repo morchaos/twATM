@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="description" content="想知道ATM在哪？ 在 Google Map 搜尋離你最近的ATM位置！全台灣23624個ATM的位置都在這">
+    <meta name="keywords" content="台灣ATM位置地圖">
+    <meta name="google-site-verification" content="v9MKqidJncD5bdENzNI0yEDZkwCh3VJr5BW0cTRcCgQ" />
+    <meta name="msvalidate.01" content="A81048F864056777A8E0E640649B3ECC" />
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <meta property="og:image" content="image/bigATM.png"/>
+    <title>台灣ATM位置地圖</title>
+
+    <script type="text/javascript" src="js/jquery-1.11.3.min.js" ></script>
+    <script type="text/javascript" src="js/jquery.easing.min.js" ></script>
+    <script type="text/javascript" src="js/jquery-1.11.3.min.js" ></script>
+    <script type="text/javascript" src="js/easing.js"></script>
+    <script type="text/javascript" src="js/ATM_with_latlng.js"></script>
+    <script type="text/javascript" src="js/main.js"></script>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+    <link rel="icon" type="image/png" sizes="16x16" href="image/favicon-32x32.png">
+    <style>
+      #map {
+        height: 100%;
+      }
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #description {
+        font-family: Roboto;
+        font-size: 15px;
+        font-weight: 300;
+      }
+
+      #infowindow-content .title {
+        font-weight: bold;
+      }
+
+      #infowindow-content {
+        display: none;
+      }
+
+      #map #infowindow-content {
+        display: inline;
+      }
+
+      .pac-card {
+        margin: 10px 10px 0 0;
+        border-radius: 2px 0 0 2px;
+        box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        outline: none;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        background-color: #fff;
+        font-family: Roboto;
+      }
+
+      #pac-container {
+        padding-bottom: 12px;
+        margin-right: 12px;
+      }
+
+      .pac-controls {
+        display: inline-block;
+        padding: 5px 11px;
+      }
+
+      .pac-controls label {
+        font-family: Roboto;
+        font-size: 13px;
+        font-weight: 300;
+      }
+
+      #pac-input {
+        background-color: #fff;
+        font-family: Roboto;
+        font-size: 15px;
+        font-weight: 300;
+        margin-left: 12px;
+        padding: 0 11px 0 13px;
+        text-overflow: ellipsis;
+        width: 50%;
+        top: 10px !important;
+        height: 40px;
+      }
+
+      #pac-input:focus {
+        border-color: #4d90fe;
+      }
+
+      #title {
+        color: #fff;
+        background-color: #4d90fe;
+        font-size: 25px;
+        font-weight: 500;
+        padding: 6px 12px;
+      }
+      #target {
+        width: 345px;
+      }
+      #img-container {
+        padding: 15px 0px 15px 5px;
+      }
+      #comment-img {
+        margin-right: 13px;
+        cursor: pointer;
+      }
+      #fb-container {
+        padding-top: 18px;
+      }
+      #fb-comments {
+        margin: 30px auto;
+        display: table;
+      }
+      @media screen and (min-width: 769px) {
+        #web-title {
+          padding-left: 80px;
+          margin: 8px;
+        }
+        #pac-input {
+          left: 50px !important;
+        }
+      }
+
+      @media screen and (min-width: 480px) and (max-width: 768px) {
+        #web-title {
+          margin: 14px 0px 10px 45px;
+        }
+      }
+
+      @media screen and (max-width: 479px) {
+        #web-title {
+          font-size: 1.2rem;
+          margin: 18px 10px 10px 10px;
+        }
+
+        #pac-input {
+          width: 90%;
+        }
+      }
+    </style>
+
+  </head>
+  <body>
+    <div class="row">
+      <div class="col-md-6 col-7">
+        <h1 id="web-title">台灣ATM位置地圖</h1>
+      </div>
+      <div class="col-lg-1 offset-lg-3 col-md-3 offset-md-1 col-3 " id="img-container">
+        <a href="https://github.com/morchaos/twATM" target="_blank">
+          <img class="img" src="image/github.svg" alt="Github Image" width="32px" height="32px">
+        </a>
+      </div>
+    </div>
+
+    <input id="pac-input" class="controls" type="text" placeholder="搜尋地點">
+    <div id="map"></div>
+    <script>
+      function initAutocomplete() {
+        var taiwan = {lat: 23.5, lng: 121};
+        var marker
+        var map = new google.maps.Map(document.getElementById('map'), {
+          center: taiwan,
+          zoom: 7,
+          mapTypeId: 'roadmap',
+          mapTypeControl: false,
+          fullscreenControl: false
+        });
+
+        var image = {
+          url: 'image/atm.svg',
+          scaledSize: new google.maps.Size(50, 50),
+          origin: new google.maps.Point(0, 0),
+          anchor: new google.maps.Point(0, 32)
+        };
+
+        var post_markers = [];
+        function bindInfoWindow(marker, map, infowindow, html) {
+          marker.addListener('click', function() {
+            infowindow.open(map, this);
+            infowindow.setContent(html);
+          });
+        }
+
+        for (i = 0; i < locations.length; i++) {
+          var marker = new google.maps.Marker({
+            position: new google.maps.LatLng(locations[i]["lat"], locations[i]["lng"]),
+            map: map,
+            icon: image,
+            title: locations[i]["owner"]
+          });
+          post_markers.push(marker);
+          var infowindow = new google.maps.InfoWindow();
+          var contentString =  '<h4>'+ locations[i]["owner"] + '</h4><p>'+ locations[i]["address"] +'</p>';
+          bindInfoWindow(marker, map, infowindow, contentString);
+        }
+
+        var markerCluster = new MarkerClusterer(map, post_markers,
+            {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
+
+        var input = document.getElementById('pac-input');
+        var searchBox = new google.maps.places.SearchBox(input);
+        map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+
+        map.addListener('bounds_changed', function() {
+          searchBox.setBounds(map.getBounds());
+        });
+
+        var markers = [];
+        searchBox.addListener('places_changed', function() {
+          var places = searchBox.getPlaces();
+
+          if (places.length == 0) {
+            return;
+          }
+
+          markers.forEach(function(marker) {
+            marker.setMap(null);
+          });
+
+          markers = [];
+
+          var bounds = new google.maps.LatLngBounds();
+          places.forEach(function(place) {
+            if (!place.geometry) {
+              console.log("Returned place contains no geometry");
+              return;
+            }
+            var icon = {
+              url: place.icon,
+              size: new google.maps.Size(71, 71),
+              origin: new google.maps.Point(0, 0),
+              anchor: new google.maps.Point(17, 34),
+              scaledSize: new google.maps.Size(25, 25)
+            };
+
+            markers.push(new google.maps.Marker({
+              map: map,
+              icon: icon,
+              title: place.name,
+              position: place.geometry.location
+            }));
+
+            if (place.geometry.viewport) {
+              bounds.union(place.geometry.viewport);
+            } else {
+              bounds.extend(place.geometry.location);
+            }
+          });
+          map.fitBounds(bounds);
+        });
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                var pos = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                var marker = new google.maps.Marker({
+                    position: pos,
+                    map: map
+                });
+                map.setZoom(17);
+                map.setCenter(pos);
+            });
+        } else {
+            // Browser doesn't support Geolocation
+            alert("未允許或遭遇錯誤！");
+        }
+      }
+
+    </script>
+    <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js">
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyANrwP97rB6-tun03pB8yY3NPd3di2BRTI&libraries=places&callback=initAutocomplete"
+         async defer></script>
+    <!-- <script src="jquery-3.3.1.min.js"></script> -->
+  </body>
+</html>
