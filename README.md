@@ -7,3 +7,7 @@ ATM位置資訊： https://data.gov.tw/dataset/24333
 經緯度座標來源：https://developer.mapquest.com/documentation/geocoding-api/
 
 Thanks Neilxx for the inspiration and ericcornelissen for the icon.
+
+
+sample screen:
+![alt text](https://github.com/morchaos/twATM/blob/master/screen.png)
